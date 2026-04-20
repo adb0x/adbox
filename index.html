@@ -467,6 +467,17 @@
     letter-spacing: 0.06em;
   }
 
+  .device-list li {
+    display: flex;
+    list-style: none;
+    margin-bottom: 8px;
+  }
+
+  .device-list li span {
+    flex: 0 0 220px;
+    display: inline-block;
+  }
+
   /* ── ANIMATIONS ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -592,7 +603,7 @@
     <div class="tech-card">
       <div class="tech-category">Scripting Bridge</div>
       <div class="tech-name">LuaBridge</div>
-      <div class="tech-desc">Binds C++ classes and functions to Lua namespaces with zero boilerplate.</div>
+      <div class="tech-desc">Binds C++ classes and functions to Lua namespaces.</div>
     </div>
     <div class="tech-card">
       <div class="tech-category">Rendering &amp; Input</div>
@@ -638,37 +649,37 @@
     <div class="feature-card">
       <div class="feature-icon">SCENE MANAGEMENT</div>
       <h3 class="feature-title">Scene Loading &amp; Transitions</h3>
-      <p class="feature-desc">Scenes defined in JSON. Actors load from reusable templates. DontDestroyOnLoad actors persist across scene changes. Fade transitions handled by a dedicated SceneTransitionManager component.</p>
+      <p class="feature-desc">Scenes defined in JSON. Actors load from reusable templates. DontDestroyOnLoad actors persist across scene changes with automated cleanup of scene-specific resources.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">RENDERING</div>
       <h3 class="feature-title">Sorted Sprite Renderer</h3>
-      <p class="feature-desc">Draw calls collected each frame and sorted by layer and Y-position before submission. Camera zoom and position with smooth lerp. UI layer rendered independently of world space.</p>
+      <p class="feature-desc">Draw calls collected each frame and stable-sorted by layer and Y-position. Features camera zoom, screen-space UI rendering, and optimized texture caching via ImageDB.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">PHYSICS</div>
       <h3 class="feature-title">Box2D Integration</h3>
-      <p class="feature-desc">Full rigid body physics with fixtures, collision callbacks, and raycasting exposed to Lua. Physics step runs after all actor updates each frame.</p>
+      <p class="feature-desc">Full rigid body physics with fixtures, collision callbacks, and raycasting. The physics world steps precisely after actor updates to ensure state consistency before rendering.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">TURN-BASED LOGIC</div>
-      <h3 class="feature-title">Turn-Based Game Loop</h3>
-      <p class="feature-desc">A global ProcessTurn() function triggers AI movement, vision cone evaluation, and blocking map updates in a defined order — all written in Lua on top of the engine's frame loop.</p>
+      <div class="feature-icon">EXECUTION LOOP</div>
+      <h3 class="feature-title">Component-Based Loop</h3>
+      <p class="feature-desc">A native C++ orchestration layer that manages precise execution order: Input processing, Lua lifecycle hooks (OnUpdate/OnLateUpdate), and C++ Particle System updates in a single deterministic tick.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">EVENTS</div>
-      <h3 class="feature-title">Event Bus</h3>
-      <p class="feature-desc">Decoupled pub/sub event system accessible from Lua. Subscriptions processed at the end of each frame to avoid mid-frame side effects.</p>
+      <h3 class="feature-title">Decoupled Event Bus</h3>
+      <p class="feature-desc">A Pub/Sub system for engine-wide communication. Subscriptions and unsubscriptions are deferred to the end of the frame to prevent collection modification errors during active event publication.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">PARTICLES</div>
-      <h3 class="feature-title">Particle System</h3>
-      <p class="feature-desc">Data-driven particle emitters updated each frame. Config-driven spawn rate, lifetime, velocity, and color over lifetime.</p>
+      <h3 class="feature-title">High-Performance Particles</h3>
+      <p class="feature-desc">Built-in C++ ParticleSystem using Data-Oriented Design. Supports custom bursts, polar coordinate emission, and linear interpolation of scale/color over a particle's lifetime with free-list memory re-use.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">INPUT</div>
       <h3 class="feature-title">Unified Input Layer</h3>
-      <p class="feature-desc">Keyboard, mouse, and controller input unified behind a single Input namespace in Lua. GetKey / GetKeyDown / GetKeyUp mirrors across all device types with per-frame state flushing.</p>
+      <p class="feature-desc">Supports Keyboard, Mouse, and GameControllers (including raw Joystick axis mapping). Features frame-synced state management to handle "Just Pressed" vs "Held" logic across all devices.</p>
     </div>
   </div>
 </section>
@@ -685,17 +696,17 @@
       <div class="controller-badge">NEW FEATURE</div>
       <h3 class="controller-title">Full Controller &amp;<br>Racing Wheel Support</h3>
       <p class="controller-desc">
-        Extended the SDL input layer to support SDL_GameController events alongside the existing keyboard and mouse system. Button states use the same INPUT_STATE enum (UP / JUST_BECAME_DOWN / DOWN / JUST_BECAME_UP) for frame-perfect input with no polling overhead.
+        Extended the SDL input layer to support SDL_GameController events alongside the existing keyboard and mouse system. Button states use a unified state machine for frame-perfect input with no polling overhead.
       </p>
       <p class="controller-desc">
-        Added raw SDL_Joystick access for devices that fall outside SDL's GameController abstraction — specifically to support the Logitech G29 steering wheel, whose pedals and shifter require direct joystick axis queries.
+        Implemented raw SDL_Joystick access to support specialized racing hardware. This allows for high-fidelity steering input and custom normalization of independent pedal and shifter axes that fall outside standard abstractions.
       </p>
       <ul class="device-list">
-        <li>Xbox controller — full button, axis, and d-pad support</li>
-        <li>PlayStation layout controller — remapped button indices</li>
-        <li>Logitech G29 steering wheel — steering, gas, brake, clutch, shifter, and all face buttons</li>
-        <li>Hotplug — controllers connected after startup detected automatically</li>
-        <li>Rumble API exposed to Lua via Input.RumbleController()</li>
+        <li><span><strong>Logitech G29 Steering Wheel</strong></span> — High-resolution steering axis mapping</li>
+        <li><span><strong>Integrated Triple-Pedal Set</strong></span> — Independent normalization for Gas, Brake, and Clutch</li>
+        <li><span><strong>6-Speed H-Pattern Shifter</strong></span> — Sequential and direct gear-state detection</li>
+        <li><span><strong>Xbox &amp; PlayStation Layouts</strong></span> — Automatic remapping and unified button indexing</li>
+        <li><span><strong>Haptic Feedback</strong></span> — Native Rumble API exposed to Lua via Input.RumbleController()</li>
       </ul>
     </div>
 
@@ -703,19 +714,22 @@
 <span class="cm">-- Logitech G29 Input Mapping</span>
 <br>
 button_names = {<br>
-  [<span class="str">0</span>]  = <span class="str">"X"</span><br>,
-  [<span class="str">1</span>]  = <span class="str">"Square"</span><br>,
-  [<span class="str">12</span>] = <span class="str">"Gear 1"</span><br>,
-  [<span class="str">13</span>] = <span class="str">"Gear 2"</span><br>,
-  [<span class="str">21</span>] = <span class="str">"Red Dial Clockwise"</span><br>,
-  <span class="cm">-- ... (and more)</span><br>
+  [<span class="str">0</span>] = <span class="str">"X"</span>,<br>
+  [<span class="str">1</span>] = <span class="str">"Square"</span>,<br>
+  [<span class="str">2</span>] = <span class="str">"Circle"</span>,<br>
+  [<span class="str">3</span>] = <span class="str">"Triangle"</span>,<br>
+  <span class="cm">-- ...</span><br>
+  [<span class="str">12</span>] = <span class="str">"Gear 1"</span>,<br>
+  [<span class="str">13</span>] = <span class="str">"Gear 2"</span>,<br>
+  [<span class="str">14</span>] = <span class="str">"Gear 3"</span>,<br>
+  <span class="cm">-- ... (and 10 more)</span><br>
 }<br>
-
+<br>
 axis_names = {<br>
-  [<span class="str">0</span>] = <span class="str">"Steering Wheel"</span><br>,
-  [<span class="str">1</span>] = <span class="str">"Gas Pedal"</span><br>,
-  [<span class="str">2</span>] = <span class="str">"Brake Pedal"</span><br>,
-  [<span class="str">3</span>] = <span class="str">"Clutch Pedal"</span><br>,
+  [<span class="str">0</span>] = <span class="str">"Steering Wheel"</span>,<br>
+  [<span class="str">1</span>] = <span class="str">"Gas Pedal"</span>,<br>
+  [<span class="str">2</span>] = <span class="str">"Brake Pedal"</span>,<br>
+  [<span class="str">3</span>] = <span class="str">"Clutch Pedal"</span>,<br>
 }
 </div>
   </div>
