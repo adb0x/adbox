@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Engine — EECS 494 Final Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0a0b;
+    --bg2:       #111114;
+    --bg3:       #18181d;
+    --border:    #2a2a35;
+    --accent:    #c8f542;
+    --accent2:   #42f5c8;
+    --text:      #e8e8ec;
+    --muted:     #666675;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,11,0.85);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: 80px;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5rem 3rem 5rem 3rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.1s forwards;
+  }
+
+  .hero-title {
+    font-family: var(--mono);
+    font-size: clamp(2.2rem, 4vw, 3.8rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.2s forwards;
+  }
+
+  .hero-title span {
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 42ch;
+    margin-bottom: 2.5rem;
+    line-height: 1.75;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.35s forwards;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.45s forwards;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .meta-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .meta-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5rem 3rem;
+    position: relative;
+  }
+
+  /* ── VIDEO ── */
+  .video-frame {
+    width: 100%;
+    max-width: 560px;
+    position: relative;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.5s forwards;
+  }
+
+  .video-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .video-label::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.4s infinite;
+  }
+
+  .video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .video-wrapper iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .play-btn {
+    width: 56px; height: 56px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .play-btn svg { fill: var(--accent); }
+
+  /* ── SECTION BASE ── */
+  section {
+    padding: 5rem 3rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── TECH GRID ── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .tech-card {
+    background: var(--bg);
+    padding: 1.75rem;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tech-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--accent);
+    transition: width 0.3s ease;
+  }
+
+  .tech-card:hover { background: var(--bg3); }
+  .tech-card:hover::after { width: 100%; }
+
+  .tech-category {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .tech-name {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .tech-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .feature-card {
+    background: var(--bg);
+    padding: 2.5rem;
+    transition: background 0.2s;
+  }
+
+  .feature-card:hover { background: var(--bg3); }
+
+  .feature-icon {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .feature-icon::before {
+    content: '';
+    display: block;
+    width: 20px; height: 1px;
+    background: var(--accent);
+  }
+
+  .feature-title {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .feature-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* ── CONTROLLER SECTION ── */
+  .controller-highlight {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .controller-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(200, 245, 66, 0.08);
+    border: 1px solid rgba(200, 245, 66, 0.2);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 0.35rem 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .controller-title {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .controller-desc {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+
+  .device-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .device-list li {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .device-list li::before {
+    content: '→';
+    color: var(--accent);
+  }
+
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--muted);
+    overflow-x: auto;
+  }
+
+  .code-block .kw  { color: var(--accent2); }
+  .code-block .fn  { color: var(--accent); }
+  .code-block .str { color: #f5a742; }
+  .code-block .cm  { color: #3a3a4a; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .footer-right {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.2; }
+  }
+
+  /* scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-left { border-right: none; border-bottom: 1px solid var(--border); }
+    .features-grid { grid-template-columns: 1fr; }
+    .controller-highlight { grid-template-columns: 1fr; }
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { gap: 1.2rem; }
+    section { padding: 3.5rem 1.5rem; }
+    footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">ENGINE_494</a>
+  <ul class="nav-links">
+    <li><a href="#demo">demo</a></li>
+    <li><a href="#tech">tech</a></li>
+    <li><a href="#features">features</a></li>
+    <li><a href="#controller">controller</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-left">
+    <p class="hero-tag">EECS 494 · Final Project · University of Michigan</p>
+    <h1 class="hero-title">
+      Custom<br>Game Engine
+      <span>from scratch.</span>
+    </h1>
+    <p class="hero-desc">
+      A fully custom 2D game engine built in C++ with a Lua scripting layer, SDL rendering, Box2D physics, and a turn-based stealth game running on top of it.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <span class="meta-label">Language</span>
+        <span class="meta-val">C++ / Lua</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Renderer</span>
+        <span class="meta-val">SDL2</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Physics</span>
+        <span class="meta-val">Box2D</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Scripting</span>
+        <span class="meta-val">LuaBridge</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right" id="demo">
+    <div class="video-frame">
+      <div class="video-label">DEMO · GAMEPLAY FOOTAGE</div>
+      <div class="video-wrapper">
+        <!--
+          REPLACE the src below with your unlisted YouTube embed URL.
+          Format: http://youtube.com/watch?v=M8AJLNx8nYE
+        -->
+        <div class="video-placeholder">
+          <div class="play-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path d="M6 3.5l9 5.5-9 5.5V3.5z"/></svg>
+          </div>
+          <span>// paste your YouTube embed URL in index.html</span>
+        </div>
+        <iframe
+          src="https://www.youtube.com/embed/M8AJLNx8nYE"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TECH STACK ── -->
+<section id="tech">
+  <div class="section-header reveal">
+    <span class="section-num">01</span>
+    <h2 class="section-title">technology stack</h2>
+  </div>
+
+  <div class="tech-grid reveal">
+    <div class="tech-card">
+      <div class="tech-category">Core</div>
+      <div class="tech-name">C++17</div>
+      <div class="tech-desc">Engine core, component system, scene management, and event bus.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-category">Scripting</div>
+      <div class="tech-name">Lua 5.4</div>
+      <div class="tech-desc">Guest language for game logic. All components are Lua tables with lifecycle callbacks.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-category">Scripting Bridge</div>
+      <div class="tech-name">LuaBridge</div>
+      <div class="tech-desc">Binds C++ classes and functions to Lua namespaces with zero boilerplate.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-category">Rendering &amp; Input</div>
+      <div class="tech-name">SDL2</div>
+      <div class="tech-desc">Window creation, 2D rendering, keyboard, mouse, and game controller input.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-category">Physics</div>
+      <div class="tech-name">Box2D</div>
+      <div class="tech-desc">Rigid body simulation, collision detection, and raycasting.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-category">Math</div>
+      <div class="tech-name">GLM</div>
+      <div class="tech-desc">Vector and matrix math for transforms, camera, and spatial queries.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-category">Audio</div>
+      <div class="tech-name">SDL_mixer</div>
+      <div class="tech-desc">Multi-channel audio playback with looping and channel management.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-category">Serialization</div>
+      <div class="tech-name">RapidJSON</div>
+      <div class="tech-desc">Parses scene files, actor templates, and game config at startup.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ENGINE FEATURES ── -->
+<section id="features">
+  <div class="section-header reveal">
+    <span class="section-num">02</span>
+    <h2 class="section-title">engine features</h2>
+  </div>
+
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">COMPONENT SYSTEM</div>
+      <h3 class="feature-title">Lua Component Architecture</h3>
+      <p class="feature-desc">Every game object is an Actor. Behavior comes from Lua table components with automatic lifecycle dispatch — OnStart, OnUpdate, OnLateUpdate, OnDestroy — managed by the C++ ComponentDB.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">SCENE MANAGEMENT</div>
+      <h3 class="feature-title">Scene Loading &amp; Transitions</h3>
+      <p class="feature-desc">Scenes defined in JSON. Actors load from reusable templates. DontDestroyOnLoad actors persist across scene changes. Fade transitions handled by a dedicated SceneTransitionManager component.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">RENDERING</div>
+      <h3 class="feature-title">Sorted Sprite Renderer</h3>
+      <p class="feature-desc">Draw calls collected each frame and sorted by layer and Y-position before submission. Camera zoom and position with smooth lerp. UI layer rendered independently of world space.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">PHYSICS</div>
+      <h3 class="feature-title">Box2D Integration</h3>
+      <p class="feature-desc">Full rigid body physics with fixtures, collision callbacks, and raycasting exposed to Lua. Physics step runs after all actor updates each frame.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">TURN-BASED LOGIC</div>
+      <h3 class="feature-title">Turn-Based Game Loop</h3>
+      <p class="feature-desc">A global ProcessTurn() function triggers AI movement, vision cone evaluation, and blocking map updates in a defined order — all written in Lua on top of the engine's frame loop.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">EVENTS</div>
+      <h3 class="feature-title">Event Bus</h3>
+      <p class="feature-desc">Decoupled pub/sub event system accessible from Lua. Subscriptions processed at the end of each frame to avoid mid-frame side effects.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">PARTICLES</div>
+      <h3 class="feature-title">Particle System</h3>
+      <p class="feature-desc">Data-driven particle emitters updated each frame. Config-driven spawn rate, lifetime, velocity, and color over lifetime.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">INPUT</div>
+      <h3 class="feature-title">Unified Input Layer</h3>
+      <p class="feature-desc">Keyboard, mouse, and controller input unified behind a single Input namespace in Lua. GetKey / GetKeyDown / GetKeyUp mirrors across all device types with per-frame state flushing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTROLLER FEATURE ── -->
+<section id="controller">
+  <div class="section-header reveal">
+    <span class="section-num">03</span>
+    <h2 class="section-title">final project feature</h2>
+  </div>
+
+  <div class="controller-highlight reveal">
+    <div>
+      <div class="controller-badge">NEW FEATURE</div>
+      <h3 class="controller-title">Full Controller &amp;<br>Racing Wheel Support</h3>
+      <p class="controller-desc">
+        Extended the SDL input layer to support SDL_GameController events alongside the existing keyboard and mouse system. Button states use the same INPUT_STATE enum (UP / JUST_BECAME_DOWN / DOWN / JUST_BECAME_UP) for frame-perfect input with no polling overhead.
+      </p>
+      <p class="controller-desc">
+        Added raw SDL_Joystick access for devices that fall outside SDL's GameController abstraction — specifically to support the Logitech G29 steering wheel, whose pedals and shifter require direct joystick axis queries.
+      </p>
+      <ul class="device-list">
+        <li>Xbox controller — full button, axis, and d-pad support</li>
+        <li>PlayStation layout controller — remapped button indices</li>
+        <li>Logitech G29 steering wheel — steering, gas, brake, clutch, shifter, and all face buttons</li>
+        <li>Hotplug — controllers connected after startup detected automatically</li>
+        <li>Rumble API exposed to Lua via Input.RumbleController()</li>
+      </ul>
+    </div>
+
+<div class="code-block">
+<span class="cm">-- Logitech G29 Input Mapping</span>
+<br>
+button_names = {<br>
+  [<span class="str">0</span>]  = <span class="str">"X"</span><br>,
+  [<span class="str">1</span>]  = <span class="str">"Square"</span><br>,
+  [<span class="str">12</span>] = <span class="str">"Gear 1"</span><br>,
+  [<span class="str">13</span>] = <span class="str">"Gear 2"</span><br>,
+  [<span class="str">21</span>] = <span class="str">"Red Dial Clockwise"</span><br>,
+  <span class="cm">-- ... (and more)</span><br>
+}<br>
+
+axis_names = {<br>
+  [<span class="str">0</span>] = <span class="str">"Steering Wheel"</span><br>,
+  [<span class="str">1</span>] = <span class="str">"Gas Pedal"</span><br>,
+  [<span class="str">2</span>] = <span class="str">"Brake Pedal"</span><br>,
+  [<span class="str">3</span>] = <span class="str">"Clutch Pedal"</span><br>,
+}
+</div>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-left">EECS 494 · Game Engine Architecture · University of Michigan</span>
+  <span class="footer-right">built with C++ · SDL2 · Lua · Box2D · GLM</span>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
