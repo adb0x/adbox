@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Engine — EECS 494 Final Project</title>
+<title>Box Engine — EECS 494 Final Project</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -52,18 +52,31 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem 3rem;
+    padding: 1rem 3rem;
     border-bottom: 1px solid var(--border);
     background: rgba(10,10,11,0.85);
     backdrop-filter: blur(12px);
   }
 
-  .nav-logo {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--accent);
-    letter-spacing: 0.08em;
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     text-decoration: none;
+  }
+
+  .engine-logo {
+    height: 28px;
+    width: auto;
+  }
+
+  .engine-name {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .nav-links {
@@ -95,7 +108,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 5rem 3rem 5rem 3rem;
+    padding: 5rem 3rem;
     border-right: 1px solid var(--border);
   }
 
@@ -119,6 +132,7 @@
     margin-bottom: 1.5rem;
     opacity: 0;
     animation: fadeUp 0.6s 0.2s forwards;
+    text-transform: uppercase;
   }
 
   .hero-title span {
@@ -416,17 +430,18 @@
   }
 
   .device-list li {
+    display: flex;
+    list-style: none;
+    margin-bottom: 8px;
     font-family: var(--mono);
     font-size: 12px;
     color: var(--muted);
-    display: flex;
     align-items: center;
-    gap: 0.75rem;
   }
 
-  .device-list li::before {
-    content: '→';
-    color: var(--accent);
+  .device-list li span {
+    flex: 0 0 280px;
+    display: inline-block;
   }
 
   .code-block {
@@ -467,17 +482,6 @@
     letter-spacing: 0.06em;
   }
 
-  .device-list li {
-    display: flex;
-    list-style: none;
-    margin-bottom: 8px;
-  }
-
-  .device-list li span {
-    flex: 0 0 220px;
-    display: inline-block;
-  }
-
   /* ── ANIMATIONS ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -510,36 +514,39 @@
     .nav-links { gap: 1.2rem; }
     section { padding: 3.5rem 1.5rem; }
     footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+    .device-list li span { flex: 0 0 200px; }
   }
 </style>
 </head>
 <body>
 
 <nav>
-  <a class="nav-logo" href="#">ENGINE_494</a>
+  <a class="logo-container" href="#">
+    <img src="logo.png" alt="Box Engine Logo" class="engine-logo">
+    <span class="engine-name">Box Engine</span>
+  </a>
   <ul class="nav-links">
     <li><a href="#demo">demo</a></li>
     <li><a href="#tech">tech</a></li>
     <li><a href="#features">features</a></li>
-    <li><a href="#controller">controller</a></li>
+    <li><a href="#controller">hardware</a></li>
   </ul>
 </nav>
 
-<!-- ── HERO ── -->
 <div class="hero">
   <div class="hero-left">
     <p class="hero-tag">EECS 494 · Final Project · University of Michigan</p>
     <h1 class="hero-title">
-      Custom<br>Game Engine
+      Box Engine
       <span>from scratch.</span>
     </h1>
     <p class="hero-desc">
-      A fully custom 2D game engine built in C++ with a Lua scripting layer, SDL rendering, Box2D physics, and a turn-based stealth game running on top of it.
+      A high-performance C++ game engine featuring a Lua scripting layer, Box2D physics integration, and native support for Logitech G29 racing hardware.
     </p>
     <div class="hero-meta">
       <div class="meta-item">
         <span class="meta-label">Language</span>
-        <span class="meta-val">C++ / Lua</span>
+        <span class="meta-val">C++17 / Lua</span>
       </div>
       <div class="meta-item">
         <span class="meta-label">Renderer</span>
@@ -560,29 +567,17 @@
     <div class="video-frame">
       <div class="video-label">DEMO · GAMEPLAY FOOTAGE</div>
       <div class="video-wrapper">
-        <!--
-          REPLACE the src below with your unlisted YouTube embed URL.
-          Format: http://youtube.com/watch?v=M8AJLNx8nYE
-        -->
-        <div class="video-placeholder">
-          <div class="play-btn">
-            <svg width="18" height="18" viewBox="0 0 18 18"><path d="M6 3.5l9 5.5-9 5.5V3.5z"/></svg>
-          </div>
-          <span>// paste your YouTube embed URL in index.html</span>
-        </div>
         <iframe
           src="https://www.youtube.com/embed/M8AJLNx8nYE"
           referrerpolicy="strict-origin-when-cross-origin"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen>
         </iframe>
-        
       </div>
     </div>
   </div>
 </div>
 
-<!-- ── TECH STACK ── -->
 <section id="tech">
   <div class="section-header reveal">
     <span class="section-num">01</span>
@@ -633,7 +628,6 @@
   </div>
 </section>
 
-<!-- ── ENGINE FEATURES ── -->
 <section id="features">
   <div class="section-header reveal">
     <span class="section-num">02</span>
@@ -684,11 +678,10 @@
   </div>
 </section>
 
-<!-- ── CONTROLLER FEATURE ── -->
 <section id="controller">
   <div class="section-header reveal">
     <span class="section-num">03</span>
-    <h2 class="section-title">final project feature</h2>
+    <h2 class="section-title">Hardware Integration</h2>
   </div>
 
   <div class="controller-highlight reveal">
@@ -696,17 +689,17 @@
       <div class="controller-badge">NEW FEATURE</div>
       <h3 class="controller-title">Full Controller &amp;<br>Racing Wheel Support</h3>
       <p class="controller-desc">
-        Extended the SDL input layer to support SDL_GameController events alongside the existing keyboard and mouse system. Button states use a unified state machine for frame-perfect input with no polling overhead.
+        Extended the SDL input layer to support <code>SDL_GameController</code> events alongside the existing keyboard and mouse system. Button states use a unified state machine for frame-perfect input with no polling overhead.
       </p>
       <p class="controller-desc">
-        Implemented raw SDL_Joystick access to support specialized racing hardware. This allows for high-fidelity steering input and custom normalization of independent pedal and shifter axes that fall outside standard abstractions.
+        Implemented raw <code>SDL_Joystick</code> access to support specialized racing hardware. This allows for high-fidelity steering input and custom normalization of independent pedal and shifter axes that fall outside standard abstractions.
       </p>
       <ul class="device-list">
         <li><span><strong>Logitech G29 Steering Wheel</strong></span> — High-resolution steering axis mapping</li>
         <li><span><strong>Integrated Triple-Pedal Set</strong></span> — Independent normalization for Gas, Brake, and Clutch</li>
         <li><span><strong>6-Speed H-Pattern Shifter</strong></span> — Sequential and direct gear-state detection</li>
         <li><span><strong>Xbox &amp; PlayStation Layouts</strong></span> — Automatic remapping and unified button indexing</li>
-        <li><span><strong>Haptic Feedback</strong></span> — Native Rumble API exposed to Lua via Input.RumbleController()</li>
+        <li><span><strong>Haptic Feedback</strong></span> — Native Rumble API exposed to Lua via <code>Input.RumbleController()</code></li>
       </ul>
     </div>
 
@@ -736,8 +729,8 @@ axis_names = {<br>
 </section>
 
 <footer>
-  <span class="footer-left">EECS 494 · Game Engine Architecture · University of Michigan</span>
-  <span class="footer-right">built with C++ · SDL2 · Lua · Box2D · GLM</span>
+  <span class="footer-left">Box Engine · EECS 494 · University of Michigan</span>
+  <span class="footer-right">built with C++17 · SDL2 · Lua · Box2D · GLM</span>
 </footer>
 
 <script>
